@@ -32,7 +32,7 @@ devrev profiles authenticate --env dev --org flow-test --usr i-vedansh.srivastav
 tar -cvzf output.tar.gz ticket-status-update/
 
 #### Create Snap In Package
-devrev snap_in_package create-one --slug dev0_snapin --name Dev0  --description "snap in package for ticket status change notification" | jq .
+devrev snap_in_package create-one --slug dev0_snapin --name Dev0  --description "discord ticket creation" | jq .
 
 *(choose a unique slug)*
 
@@ -62,7 +62,7 @@ devrev snap_in deploy don:integration:dvrv-us-1:devo/fOFb0IdZ:snap_in/092dac20-f
 <summary markdown="span">Or just do this</summary>
 <br>
 
-Open `snapin-TicketStatusUpdate/snapin-ticket-status/runsnap.sh` in your text editor and set your own `devrev_id` variable.
+Open `snapin-DiscordTicketCreation/snapin-discord-ticket-creation/runsnap.sh` in your text editor and set your own `devrev_id` variable.
 ```
 cd snapin-ticket-status/
 bash runsnap.sh
