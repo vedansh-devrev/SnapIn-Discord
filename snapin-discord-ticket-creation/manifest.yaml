@@ -1,0 +1,31 @@
+# [NEEDS CHANGES FOR DISCORD SNAP IN SUPPORT]
+# version: "1"
+
+# name: "e2e_snap_in"
+# description: "A snap-in to notify part owners on ticket status change"
+
+# connections:
+#   - name: devrev
+#     description: DevRev PAT
+#     types:
+#       - devrev-pat
+
+# event-sources:
+#   - name: devrev-webhook
+#     description: Event coming from Devrev
+#     display_name: Devrev
+#     type: devrev-webhook
+#     config:
+#       event_types:
+#         - work_updated
+
+# functions:
+#   - name: ticket-status-update
+#     description: Function containing logic to create a timeline entry on ticket status change to "Awaiting Product Assist".
+
+# automations:
+#   - name: Create a timeline entry on ticket status change to "Awaiting Product Assist".
+#     source: devrev-webhook
+#     event_types:
+#       - work_updated
+#     function: ticket-status-update
