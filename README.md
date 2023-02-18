@@ -17,7 +17,7 @@ As a DevUser, I want to be able to open a ticket from Discord, so that I don’t
 For a demo snap-in code (automation which creates a notification on github branch creation), refer to this repository.
 [Let's go to the repository](https://github.com/devrev/flow-lambda-poc)
 
-Since there is no dedicated documentation for incoming web-hook events payload from Devrev, use Cloudwatch logs (with JSON.stringify()) to view the JSON structure of the incoming event payloads. However for incoming events from Discord Interactions, refer to the [OG Discord Documentation](https://discord.com/developers/docs/interactions/receiving-and-responding#interactions)
+Since there is no dedicated documentation for incoming web-hook events payload from Devrev, use Cloudwatch logs (with `JSON.stringify()`) to view the JSON structure of the incoming event payloads. However for incoming events from Discord Interactions, refer to the [OG Discord Documentation](https://discord.com/developers/docs/interactions/receiving-and-responding#interactions)
 
 ## CLI Commands to install and deploy a snap-in:
 [Link to Commands](https://docs.google.com/document/d/1IcD_Tm3d8s9NRv4A-3RdGz58rdd2lQwOcp8xTAdWtj8/edit?usp=sharing)
