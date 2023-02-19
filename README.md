@@ -64,7 +64,7 @@ devrev snap_in deploy don:integration:dvrv-us-1:devo/fOFb0IdZ:snap_in/092dac20-f
 
 Open `snapin-DiscordTicketCreation/snapin-discord-ticket-creation/runsnap.sh` in your text editor and set your own `devrev_id` variable.
 ```
-cd snapin-ticket-status/
+cd snapin-discord-ticket-creation/
 bash runsnap.sh
 ```
 Every partition in script is a step of snap-in deployment in this [doc](https://docs.google.com/document/d/1IcD_Tm3d8s9NRv4A-3RdGz58rdd2lQwOcp8xTAdWtj8/edit)
