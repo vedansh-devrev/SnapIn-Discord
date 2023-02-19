@@ -4,7 +4,7 @@ DevRev currently supports various mediums for our customers to receive inquiries
 ## Currently Supported Use-cases
 #### Use Case 1
 ```
-As a DevUser, I want to be able to open a ticket from Discord, so that I don’t have to jump back and forth between the apps when I am already in Discord. So I want to create a ticket on Discord (and simultaneously on DevRev) through message commands.
+As a DevUser, I want to be able to open a ticket from Discord, so that I don’t have to jump back and forth between the apps when I am already in Discord. So I want to create a ticket on Discord (and simultaneously on DevRev) through message and slash commands.
 ```
 ## Steps to run the snap-in:
 
