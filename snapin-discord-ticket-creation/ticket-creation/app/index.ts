@@ -21,7 +21,8 @@ from "./handler/event-handler"
 
 // Object for inter-interaction variable exchange
 let inter_Interaction = {
-	message_id: null
+	message_id: null,
+	newThreadRequired : null,
 }
 
 export class App implements AutomationInterface {
@@ -71,7 +72,7 @@ export class App implements AutomationInterface {
 			}
 			//HANDLING SLASH COMMANDS
 			if (name === "ticket") {
-				await HandleSashCommandTicketCreation(event.payload); //Needs to be updated as per PRD
+				await HandleSashCommandTicketCreation(event.payload, inter_Interaction); //Needs to be updated as per PRD
 			}
 		}
 

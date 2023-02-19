@@ -22,7 +22,7 @@ export async function HandleMessageCommandTicketCreation(payload, inter_Interact
 		type: 9, //MODAL INPUT RESPONSE
 		data: {
 			title: "Ticket Creation Panel",
-			custom_id: "ticket_creation",
+			custom_id: "ticket_creation_message_command",
 			components: [{
 				type: 1,
 				components: [{
@@ -44,7 +44,7 @@ export async function HandleMessageCommandTicketCreation(payload, inter_Interact
 					style: 2,
 					min_length: 1,
 					max_length: 4000,
-					placeholder: "This ticket is created from discord... <message_interacted_with>... <thread_link>...",
+					placeholder: "This ticket is created from discord \n [Content] : " + message_content,
 					required: true,
 				}, ],
 			}, ],
