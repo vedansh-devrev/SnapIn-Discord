@@ -5,10 +5,7 @@ import {
 }
 from "../sdk"
 import {
-	DiscordAPIRequest,
-	DevrevAPIRequest,
 	SendInteractionResponse,
-	OpenAPISummarizer,
 }
 from "./utils";
 import {
@@ -41,9 +38,9 @@ export class App implements AutomationInterface {
 
 	async EventListener(event: AutomationEvent) {
 		console.log(`Incoming payload from discord interactions looks like : `, JSON.stringify(event.payload));
-
-		// Refer to https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+		
 		// For details on interaction payload
+		// Refer to https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 		const {
 			type,
 			data,
