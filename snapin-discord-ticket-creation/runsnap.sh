@@ -87,10 +87,10 @@ draft_creation_response=$(devrev snap_in draft --snap_in_version $snap_in_versio
 
 if [[ $draft_creation_response == *snap_in* ]] && [[ $? -eq 0 ]]; then
   snap_in_draft_id=$(echo $draft_creation_response | jq -r '.snap_in.id')
-  echo "Snap In Version created successfully with ID: $snap_in_draft_id"
+  echo "Snap In Draft created successfully with ID: $snap_in_draft_id"
 else
   debug_message=$(echo $draft_creation_response | jq -r '.debug_message')
-  echo "Snap In Version creation failed: $debug_message"
+  echo "Snap In Draft creation failed: $debug_message"
   exit 1
 fi
 
