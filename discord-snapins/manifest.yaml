@@ -1,0 +1,53 @@
+version: "1"
+
+name: "e2e_snap_in"
+description: "A snap-in to create ticket on discord"
+
+connections:
+  - name: devrev
+    description: DevRev PAT
+    types:
+      - devrev-pat
+  - name: discord
+    description: "Discord OAuth"
+    types:
+      - devrev-discord-app
+  - name: discord-bot-token
+    description: "Discord Bot Token"
+    types:
+      - devrev-flow-secret
+
+event-sources:
+  - name: discord-app-interactions
+    description: Events coming from Discord
+    display_name: Discord
+    type: discord-app-interactions
+    connection: discord
+
+functions:
+  - name: discord-tkt
+    description: Function containing logic to create a ticket on Devrev from Discord.
+
+globals:
+  - name: part_id
+    description: ID of the part under which the Devrev Ticket should be created.
+    devrev_field_type: id
+    devrev_id_type:
+      - product
+  - name: owner_id
+    description: ID of the owner under which the Devrev Ticket should be created.
+    devrev_field_type: id
+    devrev_id_type:
+      - devu
+  - name: stage  
+    devrev_field_type: text
+    description: Default stage for the created tickets.
+
+automations:
+  - name: Create a ticket on Devrev from Discord using Devrev Bot.
+    source: discord-app-interactions
+    event_types:
+        - discord.interaction.application-command
+        - discord.interaction.message-component
+        - discord.interaction.modal-submit
+    function: discord-tkt
