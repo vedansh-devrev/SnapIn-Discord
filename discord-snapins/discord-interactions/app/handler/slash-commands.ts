@@ -93,20 +93,7 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 		} catch (err) {
 			console.error(err);
 		}
-		// First follow-up Message 
-		endpoint = `/webhooks/${application_id}/${token}`;
-		const publicThreadInitiationMessage = {
-			content: `Discussion thread initiated for ticket ${workItemID}`,
-		};
-		try {
-			const resp = await DiscordAPIRequest(endpoint, {
-				method: "POST",
-				body: publicThreadInitiationMessage,
-			}, bearerAccess, discordOAuthToken);
-		} catch (err) {
-			console.error(err);
-		}
-		// Embedding for displaying the created ticket in the Ephemeral Message (Second Follow Up Message)
+		// Embedding for displaying the created ticket in the Ephemeral Message (Ephemeral Follow Up Message)
 		const embed = {
 			title: workItemID,
 			color: 0x00ff00,
@@ -160,14 +147,10 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
         const [ ticketExists, ticketData ] = await getWorkItemFromDisplayID(ticketDisplayID, "ticket" , devrevPATToken);
         if(ticketExists)
         {
-            // make follow up
-            // delete follow up
             // give ephemeral view or permanent view (ask shashank)
         }
         else
         {
-            // make follow up
-            // delete follow up
             // give ephemeral notice that such work item does not exist
         }
 	}
@@ -179,14 +162,10 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
         const [ issueExists, issueData ] = await getWorkItemFromDisplayID(issueDisplayID, "issue" , devrevPATToken);
         if(issueExists)
         {
-            // make follow up
-            // delete follow up
             // give ephemeral view or permanent view (ask shashank)
         }
         else
         {
-            // make follow up
-            // delete follow up
             // give ephemeral notice that such work item does not exist
         }
 	}

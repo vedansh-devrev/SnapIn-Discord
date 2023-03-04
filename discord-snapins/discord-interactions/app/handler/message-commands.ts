@@ -127,20 +127,7 @@ export async function HandleMessageCommandInteractions(event, name, discordOAuth
 				console.error(err);
 			}
 		}
-		// First follow-up Message 
-		endpoint = `/webhooks/${application_id}/${token}`;
-		const publicThreadInitiationMessage = {
-			content: `Discussion thread initiated for ticket ${workItemID}`,
-		};
-		try {
-			const resp = await DiscordAPIRequest(endpoint, {
-				method: "POST",
-				body: publicThreadInitiationMessage,
-			}, bearerAccess, discordOAuthToken);
-		} catch (err) {
-			console.error(err);
-		}
-		// Embedding for displaying the created ticket in the Ephemeral Message (Second Follow Up Message)
+		// Embedding for displaying the created ticket in the Ephemeral Message (Ephemeral Follow Up Message)
 		const embed = {
 			title: workItemID,
 			color: 0x00ff00,
