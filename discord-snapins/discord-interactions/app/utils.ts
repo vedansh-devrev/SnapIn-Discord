@@ -43,7 +43,6 @@ export async function DevrevAPIRequest(endpoint, options, DEVREV_PAT) {
 	return await res.json();
 }
 
-
 export async function createDiscordTag(tagName, DEVREV_PAT) {
 	// Create a Discord Tag
 	const tag_data = {
