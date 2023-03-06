@@ -25,7 +25,7 @@ event-sources:
     connection: discord
 
 functions:
-  - name: discord-tkt
+  - name: discord-interactions
     description: Function containing logic to create a ticket on Devrev from Discord.
 
 globals:
@@ -50,4 +50,4 @@ automations:
         - discord.interaction.application-command
         - discord.interaction.message-component
         - discord.interaction.modal-submit
-    function: discord-tkt
+    function: discord-interactions

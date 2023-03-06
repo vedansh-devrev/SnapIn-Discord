@@ -11,16 +11,14 @@ export async function HandleMessageCommandInteractions(event, name, discordOAuth
 		application_id,
 		member,
 		channel_id,
+		guild_id,
 	} = event.payload;
 	// Defining Access Type
 	const bearerAccess = "Bearer";
 	const botAccess = "Bot";
     // Message Command for ticket creation
-	if (name === "Create Ticket") {
-		const {
-			target_id,
-			guild_id
-		} = data;
+	if (name == "Create Ticket") {
+		const {	target_id } = data;
 		const messageContent = data.resolved.messages[target_id].content;
 		const titleFromMessage = `[via Discord] Ticket on ${target_id}`;
 		const creatorID = member.user.id;
@@ -29,7 +27,6 @@ export async function HandleMessageCommandInteractions(event, name, discordOAuth
 		let [tagExists, tagDON] = await checkIfTagExists(tagName, devrevPATToken);
 		if (!tagExists)
 			tagDON = await createDiscordTag(tagName, devrevPATToken);
-
 		// Create DevRev Ticket and Get Response Payload
 		let messageLink = `https://discord.com/channels/${guild_id}/${channel_id}/${target_id}`;
 		const workData = {
@@ -145,14 +142,13 @@ export async function HandleMessageCommandInteractions(event, name, discordOAuth
 				value: workOwnerDisplayName,
 			}, {
 				name: "Stage",
-				value: workStage,
+				value: workStage.name,
 			}, ],
 			timestamp: new Date(),
 		};
 		endpoint = `/webhooks/${application_id}/${token}`;
 		const ephemeralTicketReviewMessage = {
 			content: "DevRev Ticket",
-			flags: 64,
 			embeds: [embed],
 			components: [{
 				type: 1,

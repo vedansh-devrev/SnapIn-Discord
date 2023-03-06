@@ -5,6 +5,9 @@ import {
 }
 from "../sdk"
 
+const MessageCommands = ["Create Ticket"];
+const SlashCommands = ["create-ticket", "devrev-ticket", "devrev-issue"];
+
 import {
 	HandleMessageCommandInteractions,
 	HandleSlashCommandInteractions,
@@ -42,12 +45,12 @@ export class App implements AutomationInterface {
 				name
 			} = data;
 			// Handling Message Commands
-			if (name in ["Create Ticket"]) {
-				HandleMessageCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
+			if (MessageCommands.includes(name)) {
+				await HandleMessageCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
 			}
 			// Handling Slash Commands
-			if (name in ["create-ticket", "devrev-ticket", "devrev-issue"]) {
-				HandleSlashCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
+			if (SlashCommands.includes(name)) {
+				await HandleSlashCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
 			}
 		}
 	}

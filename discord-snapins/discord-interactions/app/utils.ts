@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
 export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_TOKEN) {
 	// Append endpoint to root API URL
@@ -23,25 +23,26 @@ export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_T
 }
 
 export async function DevrevAPIRequest(endpoint, options, DEVREV_PAT) {
-	// append endpoint to root API URL
+	// Append endpoint to root DevRev API URL
 	const url = 'https://api.dev.devrev-eng.ai/' + endpoint;
 	// Stringify payloads
 	if (options.body) options.body = JSON.stringify(options.body);
 	// Use node-fetch to make requests
 	const res = await fetch(url, {
 		headers: {
-			Authorization: `${DEVREV_PAT}`,
+			Authorization: DEVREV_PAT,
 			'Content-Type': 'application/json; charset=UTF-8',
 		},
 		...options
-	});
-	// throw API errors
+	})
+	// Throw API errors
 	if (!res.ok) {
-		const data = await res.json();
-		throw new Error(JSON.stringify(data));
+		const errorData = await res.json();
+		throw new Error(JSON.stringify(errorData));
 	}
 	return await res.json();
 }
+
 
 export async function createDiscordTag(tagName, DEVREV_PAT) {
 	// Create a Discord Tag
@@ -65,6 +66,7 @@ export async function createDiscordTag(tagName, DEVREV_PAT) {
 export async function checkIfTagExists(tagName, DEVREV_PAT) {
 	let endpoint = `tags.list`
 	let nextCursor, tagsArray, tagID;
+	console.log("checking first iteration for tags")
 	// First Iteration Fetch
 	try {
 		const resp = await DevrevAPIRequest(endpoint, {
@@ -72,18 +74,22 @@ export async function checkIfTagExists(tagName, DEVREV_PAT) {
 		}, DEVREV_PAT);
 		nextCursor = resp.next_cursor;
 		tagsArray = resp.tags;
+		console.log(nextCursor, tagsArray);
 	} catch (err) {
 		console.error(err);
 	}
+	console.log(tagsArray)
 	let tagExists = false;
-	for (const tag of tagsArray) {
+	for (let tag of tagsArray) {
 		if (tag.name === tagName) {
 			tagID = tag.id;
 			tagExists = true;
 			break;
 		}
 	}
+	console.log(tagExists, tagID);
 	// Fetching all possible iterations
+	console.log("checking later iteration for tags")
 	if (!tagExists) {
 		while (nextCursor != undefined) {
 			endpoint = `tags.list?cursor=${nextCursor}`;
@@ -96,7 +102,7 @@ export async function checkIfTagExists(tagName, DEVREV_PAT) {
 			} catch (err) {
 				console.error(err);
 			}
-			for (const tag of tagsArray) {
+			for (let tag of tagsArray) {
 				if (tag.name === tagName) {
 					tagID = tag.id;
 					tagExists = true;
@@ -107,6 +113,7 @@ export async function checkIfTagExists(tagName, DEVREV_PAT) {
 				break;
 		}
 	}
+	console.log(tagExists, tagID);
 	return [tagExists, tagID];
 }
 
@@ -126,7 +133,7 @@ export async function getWorkItemFromDisplayID(workDisplayID, workType , devrevP
 	}
 	// workObject is the final work-item which is sent (if it exists for a given work display ID)
 	let workExists = false, workObject;
-	for (const work of worksArray) {
+	for (let work of worksArray) {
 		if (work.display_id === workDisplayID) {
 			workObject = work;
 			workExists = true;
@@ -146,7 +153,7 @@ export async function getWorkItemFromDisplayID(workDisplayID, workType , devrevP
 			} catch (err) {
 				console.error(err);
 			}
-			for (const work of worksArray) {
+			for (let work of worksArray) {
 				if (work.display_id === workDisplayID) {
 					workObject = work;
 					workExists = true;

@@ -139,13 +139,13 @@ if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
   echo "Performing action..."
   echo " "
   echo " "
-  echo "Package Deleted..."
-  devrev snap_in_package delete-one $snap_in_package_id
- 
-  echo " "
-  echo " "
   echo "Snap In Deleted..."
   devrev snap_in delete-one $snap_in_id
+  echo " "
+  echo " "
+  echo "Package Deleted..."
+  devrev snap_in_package delete-one $snap_in_package_id
+
   # do something here
 else
   echo "Action cancelled. Phew!"

@@ -109,14 +109,13 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 				value: workOwnerDisplayName,
 			}, {
 				name: "Stage",
-				value: workStage,
+				value: workStage.name,
 			}, ],
 			timestamp: new Date(),
 		};
 		endpoint = `/webhooks/${application_id}/${token}`;
 		const ephemeralTicketReviewMessage = {
 			content: "DevRev Ticket",
-			flags: 64,
 			embeds: [embed],
 			components: [{
 				type: 1,
@@ -140,14 +139,16 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 	// Slash Command to get DevRev ticket info
 	if (name == 'devrev-ticket') {
 		const { options	} = data;
-		const ticketDisplayID = "TKT-" + options.value;
+		const ticketDisplayID = "TKT-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
+		console.log(ticketDisplayID);
 		const [ticketExists, ticketData] = await getWorkItemFromDisplayID(ticketDisplayID, "ticket", devrevPATToken);
-		let ticketOwnerList = ticketData.owned_by;
-		let ticketOwnerStr = "";
-		for (let owner of ticketOwnerList)
-			ticketOwnerStr += owner.display_name + " ";
+		console.log([ticketExists, ticketData]);
 		if (ticketExists) {
+			let ticketOwnerList = ticketData.owned_by;
+			let ticketOwnerStr = "";
+			for (let owner of ticketOwnerList)
+				ticketOwnerStr += owner.display_name + " ";
 			// Display an ephemeral Ticket Summary
 			const embed = {
 				title: ticketData.display_id,
@@ -166,10 +167,10 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 					value: ticketOwnerStr,
 				}, {
 					name: "Stage",
-					value: ticketData.severity,
-				}, {
-					name: "Priority",
 					value: ticketData.stage.name,
+				}, {
+					name: "Severity",
+					value: ticketData.severity,
 				}, ],
 			};
 			let endpoint = `/webhooks/${application_id}/${token}`;
@@ -215,7 +216,7 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 	// Slash Command to get DevRev Issue info
 	if (name == 'devrev-issue') {
 		const {	options	} = data;
-		const issueDisplayID = "ISS-" + options.value;
+		const issueDisplayID = "ISS-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
 		const [issueExists, issueData] = await getWorkItemFromDisplayID(issueDisplayID, "issue", devrevPATToken);
 		let issueOwnerList = issueData.owned_by;
@@ -241,10 +242,10 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 					value: issueOwnerStr,
 				}, {
 					name: "Stage",
-					value: issueData.severity,
+					value: issueData.stage.name,
 				}, {
 					name: "Priority",
-					value: issueData.stage.name,
+					value: issueData.priority,
 				}, ],
 			};
 			let endpoint = `/webhooks/${application_id}/${token}`;
@@ -275,7 +276,6 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 			let endpoint = `/webhooks/${application_id}/${token}`;
 			const ephemeralDoesNotExistMessage = {
 				content: `There is no DevRev issue with id ${issueDisplayID}`,
-				flags: 64,
 			};
 			try {
 				const resp = await DiscordAPIRequest(endpoint, {
