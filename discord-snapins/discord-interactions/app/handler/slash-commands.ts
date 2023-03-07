@@ -219,11 +219,11 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 		const issueDisplayID = "ISS-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
 		const [issueExists, issueData] = await getWorkItemFromDisplayID(issueDisplayID, "issue", devrevPATToken);
-		let issueOwnerList = issueData.owned_by;
-		let issueOwnerStr = "";
-		for (let owner of issueOwnerList)
-			issueOwnerStr += owner.display_name + " ";
 		if (issueExists) {
+			let issueOwnerList = issueData.owned_by;
+			let issueOwnerStr = "";
+			for (let owner of issueOwnerList)
+				issueOwnerStr += owner.display_name + " ";
 			// Display an ephemeral Issue Summary
 			const embed = {
 				title: issueData.display_id,
