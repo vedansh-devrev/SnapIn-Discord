@@ -35,17 +35,12 @@ export async function createDiscordThreadOnMessage(threadData, channelID, messag
 	return threadObject;
 }
 
-export async function createPublicDiscordThreadWithoutMessage(threadName, channelID, BOT_ACCESS, DISCORD_BOT_TOKEN) {
-	// API endpoint to create a new thread (without a message)
-	// type : 11 specifies a Public Thread	
+export async function createPublicDiscordThreadWithoutMessage(threadData, channelID, BOT_ACCESS, DISCORD_BOT_TOKEN) {
 	let threadObject;
 	try {
 		threadObject = await DiscordAPIRequest(`/channels/${channelID}/threads`, {
 			method: "POST",
-			body: {
-				name: threadName,
-				type: 11,
-			},
+			body: threadData,
 		}, BOT_ACCESS, DISCORD_BOT_TOKEN);
 	} catch (err) {
 		console.error(err);

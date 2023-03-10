@@ -51,10 +51,17 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 			body: options[1].value,
 			type: `ticket`,
 		}, devrevPATToken);
-		const thread = await createPublicDiscordThreadWithoutMessage(THREAD_NAME, channel_id, BOT_ACCESS, discordBotToken);
+		// Create Discord discussion thread for new ticket
+		const thread = await createPublicDiscordThreadWithoutMessage( {
+			name: THREAD_NAME,
+			// type : 11 specifies a Public Thread	
+			type: 11,
+		}, channel_id, BOT_ACCESS, discordBotToken);
+		// Create a thread message for notifying ticket creation
 		await writeToDiscordThread(thread.id, {
 			content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
 		}, BOT_ACCESS, discordBotToken);
+		// Sending follow up response from the Lambda function to Discord interaction
 		await sendDiscordFollowUpMessage({
 			content: "DevRev Ticket",
 			embeds: [{
