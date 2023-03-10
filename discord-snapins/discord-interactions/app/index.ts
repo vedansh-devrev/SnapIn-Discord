@@ -9,9 +9,11 @@ const MessageCommands = ["Create Ticket"];
 const SlashCommands = ["create-ticket", "devrev-ticket", "devrev-issue"];
 
 import {
-	HandleMessageCommandInteractions,
-	HandleSlashCommandInteractions,
-} from "./handler/event-handler"
+	HandleMessageCommandInteractions
+} from "./handler/message-commands";
+import {
+	HandleSlashCommandInteractions
+} from "./handler/slash-commands";
 
 export class App implements AutomationInterface {
 
@@ -28,9 +30,8 @@ export class App implements AutomationInterface {
 	}
 
 	async EventListener(event: AutomationEvent) {
-		// For details on interaction payload
+		// For details on interaction payload from Discord
 		// Refer to https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
-		console.log(`Incoming payload : `, JSON.stringify(event));
 		const {
 			type,
 			data,

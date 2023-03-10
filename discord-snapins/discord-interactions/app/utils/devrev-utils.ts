@@ -1,31 +1,5 @@
 import fetch from "node-fetch";
 
-
-
-// Discord Util Functions
-export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_TOKEN) {
-	// Append endpoint to root API URL
-	const url = 'https://discord.com/api/' + endpoint;
-	// Stringify payloads
-	if (options.body) options.body = JSON.stringify(options.body);
-	// Use node-fetch to make requests
-	const res = await fetch(url, {
-		headers: {
-			Authorization: `${TOKEN_TYPE} ${DISCORD_TOKEN}`,
-			'Content-Type': 'application/json; charset=UTF-8',
-		},
-		...options
-	});
-	// throw API errors
-	if (!res.ok) {
-		const data = await res.json();
-		throw new Error(JSON.stringify(data));
-	}
-	// return original response
-	return await res.json();
-}
-
-// Devrev Util Functions
 export async function DevrevAPIRequest(endpoint, options, DEVREV_PAT) {
 	// Append endpoint to root DevRev API URL
 	const url = 'https://api.dev.devrev-eng.ai/' + endpoint;
@@ -47,20 +21,17 @@ export async function DevrevAPIRequest(endpoint, options, DEVREV_PAT) {
 	return await res.json();
 }
 
-export async function createDevrevTag(tagName, DEVREV_PAT) {
-	// Create a Discord Tag
-	const tagData = {
-		name: tagName,
-	}
+export async function createDevrevTag(tagData, DEVREV_PAT) {
+	let tagObject;
 	try {
-		const resp = await DevrevAPIRequest(`tags.create`, {
+		tagObject = await DevrevAPIRequest(`tags.create`, {
 			method: "POST",
 			body: tagData,
 		}, DEVREV_PAT);
-		return resp.tag.id;
 	} catch (err) {
 		console.error(err);
 	}
+	return tagObject;
 }
 
 export async function checkIfDevrevTagExists(tagName, DEVREV_PAT) {
@@ -117,40 +88,38 @@ export async function getDevrevWorkItemFromDisplayID(workDisplayID, workType, DE
 }
 
 export async function getDevrevTagsList(nextCursor, DEVREV_PAT) {
-	let resp, endpoint = (!nextCursor) ? `tags.list` : `tags.list?cursor=${nextCursor}`;
+	let tagsListObject, endpoint = (!nextCursor) ? `tags.list` : `tags.list?cursor=${nextCursor}`;
 	try {
-		resp = await DevrevAPIRequest(endpoint, {
+		tagsListObject = await DevrevAPIRequest(endpoint, {
 			method: "GET",
 		}, DEVREV_PAT);
 	} catch (err) {
 		console.error(err);
 	}
-	return [resp.tags, resp.next_cursor];
+	return [tagsListObject.tags, tagsListObject.next_cursor];
 }
 
 export async function getDevrevWorksList(workType, nextCursor, DEVREV_PAT) {
-	let resp, endpoint = (!nextCursor) ? `works.list?type=${workType}` : `works.list?cursor=${nextCursor}&type=${workType}`;
+	let worksListObject, endpoint = (!nextCursor) ? `works.list?type=${workType}` : `works.list?cursor=${nextCursor}&type=${workType}`;
 	try {
-		resp = await DevrevAPIRequest(endpoint, {
+		worksListObject = await DevrevAPIRequest(endpoint, {
 			method: "GET",
 		}, DEVREV_PAT);
 	} catch (err) {
 		console.error(err);
 	}
-	return [resp.works, resp.next_cursor];
+	return [worksListObject.works, worksListObject.next_cursor];
 }
 
-export async function createDevrevWorkItem () {
-
+export async function createDevrevWorkItem(workData, DEVREV_PAT) {
+	let workItemCreated;
+	try {
+		workItemCreated = await DevrevAPIRequest(`works.create`, {
+			method: "POST",
+			body: workData,
+		}, DEVREV_PAT);
+	} catch (err) {
+		console.error(err);
+	}
+	return workItemCreated;
 }
-
-// TO DO THINGS
-
-// devrev
-// create Devrev work should be a seperate function
-
-// discord
-// threading should be checked and created in seperate functions
-// channel message with source
-// follow up message
-// and check more

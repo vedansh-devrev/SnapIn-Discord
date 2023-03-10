@@ -1,9 +1,15 @@
 import {
-	DevrevAPIRequest,
-	DiscordAPIRequest,
+	writeToDiscordThread,
+	getDiscordMessageObject,
+	createDiscordThreadOnMessage,
+	sendDiscordFollowUpMessage
+} from "../utils/discord-utils"
+
+import {
 	checkIfDevrevTagExists,
-	createDevrevTag
-} from "../utils"
+	createDevrevTag,
+	createDevrevWorkItem,
+} from "../utils/devrev-utils"
 
 // Defining Access Type
 const BEARER_ACCESS = "Bearer";
@@ -14,123 +20,86 @@ const THREAD_NAME = "[devrev-tickets]"
 
 export async function HandleMessageCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken) {
 	const {
-		data,
+		payload : {
+		data : {
+			target_id,
+			resolved : {
+				messages,
+			},
+		},
 		token,
 		application_id,
 		member,
 		channel_id,
 		guild_id,
-	} = event.payload;
+		},
+		input_data: {
+			global_values: { part_id, owner_id, stage },
+		}
+	} = event;
 	// Message Command for ticket creation
 	if (name == "Create Ticket") {
-		const {	target_id } = data;
 		// Fetch Tag DON ID for TAG_NAME
 		let [tagExists, tagDON] = await checkIfDevrevTagExists(TAG_NAME, devrevPATToken);
 		if (!tagExists)
-			tagDON = await createDevrevTag(TAG_NAME, devrevPATToken);
-		// Create DevRev Ticket and Get Response Payload
+			tagDON = (await createDevrevTag({
+				name: TAG_NAME,
+			}, devrevPATToken)).tag.id;
+		// Create DevRev Ticket and Get Work Object
 		let messageLink = `https://discord.com/channels/${guild_id}/${channel_id}/${target_id}`;
-		const workData = {
-			applies_to_part: event.input_data.global_values.part_id,
-			owned_by: [event.input_data.global_values.owner_id],
+		const workItemCreated = await createDevrevWorkItem({
+			applies_to_part: part_id,
+			owned_by: [owner_id],
 			stage: {
-				name: event.input_data.global_values.stage,
+				name: stage,
 			},
 			tags: [{
 				id: tagDON,
 			}],
 			title: `[via Discord] Ticket on ${target_id}`,
-			body: `This ticket is created on Discord thread from this [message](${messageLink}).\n[Content] : ` + data.resolved.messages[target_id].content,
+			body: `This ticket is created on Discord thread from this [message](${messageLink}).\n[Content] : ` + messages[target_id].content,
 			type: `ticket`,
-		};
-		let workTitle, workItemID, workOwnerDisplayName, workPartName, workStage, workDescription;
-		try {
-			const resp = await DevrevAPIRequest(`works.create`, {
-				method: "POST",
-				body: workData,
-			}, devrevPATToken);
-			// Work Data for review message
-			workItemID = resp.work.display_id;
-			workOwnerDisplayName = resp.work.created_by.display_name;
-			workPartName = resp.work.applies_to_part.name;
-			workStage = resp.work.stage;
-			workDescription = resp.work.body;
-			workTitle = resp.work.title;
-			console.log("Successfully created devrev work item!");
-		} catch (err) {
-			console.error(err);
-		}
-		// Retrieve the Message Object using ID to check if it has an existing thread
+		}, devrevPATToken);
+		// Retrieve the Message Object to check if it has an existing thread
 		let threadExists, threadID;
-		try {
-			const resp = await DiscordAPIRequest(`channels/${channel_id}/messages/${target_id}`, {
-				method: "GET",
-			}, BOT_ACCESS, discordBotToken);
-			if (resp.thread == null) threadExists = false;
-			else [threadExists, threadID] = [true, resp.thread.id];
-		} catch (err) {
-			console.error(err);
-		}
+		const messageObject = await getDiscordMessageObject(channel_id, target_id, BOT_ACCESS, discordBotToken);
+		
+		if (messageObject.thread == null) threadExists = false;
+		else [threadExists, threadID] = [true, messageObject.thread.id];
 		// Discord currently allows 1 thread per post, so we must write new ticket creation notifications on the existing thread, if any.
-		if (threadExists) {
-			//Write to the same thread
-			try {
-				await DiscordAPIRequest(`channels/${threadID}/messages`, {
-					method: "POST",
-					body: {
-						content: `A ticket ${workItemID} has been created by <@${member.user.id}>!`,
-					},
-				}, BOT_ACCESS, discordBotToken);
-			} catch (err) {
-				console.error(err);
-			}
+		if (messageObject.thread) {
+			await writeToDiscordThread(messageObject.thread.id, {
+				content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
+			}, BOT_ACCESS, discordBotToken);
 		} else {
-			// Creating a new thread from message
-			let threadID;
-			try {
-				const resp = await DiscordAPIRequest(`channels/${channel_id}/messages/${target_id}/threads`, {
-					method: "POST",
-					body: {
-						name: THREAD_NAME,
-					},
-				}, BOT_ACCESS, discordBotToken);
-				threadID = resp.id;
-			} catch (err) {
-				console.error(err);
-			}
-			// Writing the message to the existing or newly created thread
-			try {
-				await DiscordAPIRequest(`channels/${threadID}/messages`, {
-					method: "POST",
-					body: {
-						content: `A ticket ${workItemID} has been created by <@${member.user.id}>!`,
-					},
-				}, BOT_ACCESS, discordBotToken);
-			} catch (err) {
-				console.error(err);
-			}
+			const thread = await createDiscordThreadOnMessage({
+				name: THREAD_NAME,
+			}, channel_id, target_id, BOT_ACCESS, discordBotToken);
+			await writeToDiscordThread(thread.id, {
+				content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
+			}, BOT_ACCESS, discordBotToken);
 		}
 		// Embedding for displaying the created ticket in the Ephemeral Message (Ephemeral Follow Up Message)
-		const ephemeralTicketReviewMessage = {
+		await sendDiscordFollowUpMessage({
 			content: "DevRev Ticket",
 			embeds: [{
-				title: workItemID,
+				title: workItemCreated.work.display_id,
 				color: 0x00ff00,
 				fields: [{
 					name: "Title",
-					value: workTitle,
+					value: workItemCreated.work.title,
 				}, {
 					name: "Description",
-					value: workDescription,
+					value: workItemCreated.work.body,
 				}, {
 					name: "Parts",
-					value: workPartName,
+					value: workItemCreated.work.applies_to_part.name,
 				}, {
 					name: "Owner",
-					value: workOwnerDisplayName,
+					value: workItemCreated.work.created_by.display_name,
 				}, {
 					name: "Stage",
-					value: workStage.name,
+					value: workItemCreated.work.stage.name,
 				}, ],
 				timestamp: new Date(),
 			}],
@@ -140,17 +109,9 @@ export async function HandleMessageCommandInteractions(event, name, discordOAuth
 					type: 2,
 					label: "Checkout Ticket?",
 					style: 5,
-					url: "https://app.dev.devrev-eng.ai/flow-test/works/" + workItemID,
+					url: "https://app.dev.devrev-eng.ai/flow-test/works/" + workItemCreated.work.display_id,
 				}, ],
 			}, ],
-		};
-		try {
-			await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
-				method: "POST",
-				body: ephemeralTicketReviewMessage,
-			}, BEARER_ACCESS, discordOAuthToken);
-		} catch (err) {
-			console.error(err);
-		}
+		}, application_id, token, BEARER_ACCESS, discordOAuthToken);
 	}
 }
