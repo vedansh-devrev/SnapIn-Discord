@@ -1,10 +1,18 @@
 import {
 	DevrevAPIRequest,
 	DiscordAPIRequest,
-	checkIfTagExists,
-	createDiscordTag,
-	getWorkItemFromDisplayID
+	checkIfDevrevTagExists,
+	createDevrevTag,
+	getDevrevWorkItemFromDisplayID
 } from "../utils"
+
+// Defining Access Type
+const BEARER_ACCESS = "Bearer";
+const BOT_ACCESS = "Bot";
+// DevRev Tag and Discord Thread for created work-item
+const TAG_NAME = "discord-ticket";
+const THREAD_NAME = "[devrev-tickets]"
+
 export async function HandleSlashCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken) {
 	const {
 		data,
@@ -13,39 +21,30 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 		member,
 		channel_id,
 	} = event.payload;
-	// Defining Access Type
-	const bearerAccess = "Bearer";
-	const botAccess = "Bot";
 	// Slash Command for ticket creation
 	if (name === 'create-ticket') {
-		const {	options	} = data;
-		const ticketTitle = options[0].value;
-		const ticketDescription = options[1].value;
-		const ticketStage = options[2].value;
-		const creatorID = member.user.id;
-		const tagName = "discord-ticket";
-		// Fetch `Discord` Tag DON ID
-		let [tagExists, tagDON] = await checkIfTagExists(tagName, devrevPATToken);
+		const { options } = data;
+		// Fetch Tag DON ID for TAG_NAME
+		let [tagExists, tagDON] = await checkIfDevrevTagExists(TAG_NAME, devrevPATToken);
 		if (!tagExists)
-			tagDON = await createDiscordTag(tagName, devrevPATToken);
+			tagDON = await createDevrevTag(TAG_NAME, devrevPATToken);
 		// Create DevRev Ticket and Get Response Payload
 		const work_data = {
 			applies_to_part: event.input_data.global_values.part_id,
 			owned_by: [event.input_data.global_values.owner_id],
 			stage: {
-				name: ticketStage,
+				name: options[2].value,
 			},
 			tags: [{
 				id: tagDON,
 			}],
-			title: ticketTitle,
-			body: ticketDescription,
+			title: options[0].value,
+			body: options[1].value,
 			type: `ticket`,
 		};
-		let endpoint = `works.create`;
 		let workTitle, workItemID, workOwnerDisplayName, workPartName, workStage, workDescription;
 		try {
-			const resp = await DevrevAPIRequest(endpoint, {
+			const resp = await DevrevAPIRequest(`works.create`, {
 				method: "POST",
 				body: work_data,
 			}, devrevPATToken);
@@ -62,61 +61,54 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 		}
 		// API endpoint to create a new thread (without a message)
 		// type : 11 specifies a Public Thread
-		const threadData = {
-			name: "[devrev-tickets]",
-			type: 11,
-		};
-		endpoint = `/channels/${channel_id}/threads`;
 		let threadID;
 		try {
-			const resp = await DiscordAPIRequest(endpoint, {
+			const resp = await DiscordAPIRequest(`/channels/${channel_id}/threads`, {
 				method: "POST",
-				body: threadData,
-			}, botAccess, discordBotToken);
-			const payload = await resp.json();
-			threadID = payload.id;
+				body: {
+					name: THREAD_NAME,
+					type: 11,
+				},
+			}, BOT_ACCESS, discordBotToken);
+			threadID = resp.id;
 		} catch (err) {
 			console.error(err);
 		}
 		// API endpoint to write to that thread
-		endpoint = `channels/${threadID}/messages`;
-		const publicMessageInThread = {
-			content: `A ticket ${workItemID} has been created by <@${creatorID}>!`,
-		};
 		try {
-			const resp = await DiscordAPIRequest(endpoint, {
+			await DiscordAPIRequest(`channels/${threadID}/messages`, {
 				method: "POST",
-				body: publicMessageInThread,
-			}, botAccess, discordBotToken);
+				body: {
+					content: `A ticket ${workItemID} has been created by <@${member.user.id}>!`,
+				},
+			}, BOT_ACCESS, discordBotToken);
 		} catch (err) {
 			console.error(err);
 		}
 		// Embedding for displaying the created ticket in the Ephemeral Message (Ephemeral Follow Up Message)
-		const embed = {
-			title: workItemID,
-			color: 0x00ff00,
-			fields: [{
-				name: "Title",
-				value: workTitle,
-			}, {
-				name: "Description",
-				value: workDescription,
-			}, {
-				name: "Parts",
-				value: workPartName,
-			}, {
-				name: "Owner",
-				value: workOwnerDisplayName,
-			}, {
-				name: "Stage",
-				value: workStage.name,
-			}, ],
-			timestamp: new Date(),
-		};
-		endpoint = `/webhooks/${application_id}/${token}`;
 		const ephemeralTicketReviewMessage = {
 			content: "DevRev Ticket",
-			embeds: [embed],
+			embeds: [{
+				title: workItemID,
+				color: 0x00ff00,
+				fields: [{
+					name: "Title",
+					value: workTitle,
+				}, {
+					name: "Description",
+					value: workDescription,
+				}, {
+					name: "Parts",
+					value: workPartName,
+				}, {
+					name: "Owner",
+					value: workOwnerDisplayName,
+				}, {
+					name: "Stage",
+					value: workStage.name,
+				},],
+				timestamp: new Date(),
+			}],
 			components: [{
 				type: 1,
 				components: [{
@@ -124,60 +116,54 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 					label: "Checkout Ticket?",
 					style: 5,
 					url: "https://app.dev.devrev-eng.ai/flow-test/works/" + workItemID,
-				}, ],
-			}, ],
+				},],
+			},],
 		};
 		try {
-			const resp = await DiscordAPIRequest(endpoint, {
+			await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
 				method: "POST",
 				body: ephemeralTicketReviewMessage,
-			}, bearerAccess, discordOAuthToken);
+			}, BEARER_ACCESS, discordOAuthToken);
 		} catch (err) {
 			console.error(err);
 		}
 	}
 	// Slash Command to get DevRev ticket info
 	if (name == 'devrev-ticket') {
-		const { options	} = data;
+		const { options } = data;
 		const ticketDisplayID = "TKT-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
-		console.log(ticketDisplayID);
-		const [ticketExists, ticketData] = await getWorkItemFromDisplayID(ticketDisplayID, "ticket", devrevPATToken);
-		console.log([ticketExists, ticketData]);
+		const [ticketExists, ticketData] = await getDevrevWorkItemFromDisplayID(ticketDisplayID, "ticket", devrevPATToken);
 		if (ticketExists) {
-			let ticketOwnerList = ticketData.owned_by;
 			let ticketOwnerStr = "";
-			for (let owner of ticketOwnerList)
+			for (let owner of ticketData.owned_by)
 				ticketOwnerStr += owner.display_name + " ";
 			// Display an ephemeral Ticket Summary
-			const embed = {
-				title: ticketData.display_id,
-				color: 0x00ff00,
-				fields: [{
-					name: "Title",
-					value: ticketData.title,
-				}, {
-					name: "Description",
-					value: ticketData.body,
-				}, {
-					name: "Parts",
-					value: ticketData.applies_to_part.display_id,
-				}, {
-					name: "Owner",
-					value: ticketOwnerStr,
-				}, {
-					name: "Stage",
-					value: ticketData.stage.name,
-				}, {
-					name: "Severity",
-					value: ticketData.severity,
-				}, ],
-			};
-			let endpoint = `/webhooks/${application_id}/${token}`;
 			const ephemeralTicketReviewMessage = {
 				content: "DevRev Ticket",
-				flags: 64,
-				embeds: [embed],
+				embeds: [{
+					title: ticketData.display_id,
+					color: 0x00ff00,
+					fields: [{
+						name: "Title",
+						value: ticketData.title,
+					}, {
+						name: "Description",
+						value: ticketData.body,
+					}, {
+						name: "Parts",
+						value: ticketData.applies_to_part.display_id,
+					}, {
+						name: "Owner",
+						value: ticketOwnerStr,
+					}, {
+						name: "Stage",
+						value: ticketData.stage.name,
+					}, {
+						name: "Severity",
+						value: ticketData.severity,
+					},],
+				}],
 				components: [{
 					type: 1,
 					components: [{
@@ -185,29 +171,26 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 						label: "Checkout Ticket?",
 						style: 5,
 						url: "https://app.dev.devrev-eng.ai/flow-test/works/" + ticketData.display_id,
-					}, ],
-				}, ],
+					},],
+				},],
 			};
 			try {
-				const resp = await DiscordAPIRequest(endpoint, {
+				await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
 					method: "POST",
 					body: ephemeralTicketReviewMessage,
-				}, bearerAccess, discordOAuthToken);
+				}, BEARER_ACCESS, discordOAuthToken);
 			} catch (err) {
 				console.error(err);
 			}
 		} else {
 			// Display ephemeral message that such work item does not exist
-			let endpoint = `/webhooks/${application_id}/${token}`;
-			const ephemeralDoesNotExistMessage = {
-				content: `There is no DevRev ticket with id ${ticketDisplayID}`,
-				flags: 64,
-			};
 			try {
-				const resp = await DiscordAPIRequest(endpoint, {
+				await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
 					method: "POST",
-					body: ephemeralDoesNotExistMessage,
-				}, bearerAccess, discordOAuthToken);
+					body: {
+						content: `There is no DevRev ticket with id ${ticketDisplayID}`,
+					},
+				}, BEARER_ACCESS, discordOAuthToken);
 			} catch (err) {
 				console.error(err);
 			}
@@ -215,44 +198,40 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 	}
 	// Slash Command to get DevRev Issue info
 	if (name == 'devrev-issue') {
-		const {	options	} = data;
+		const { options } = data;
 		const issueDisplayID = "ISS-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
-		const [issueExists, issueData] = await getWorkItemFromDisplayID(issueDisplayID, "issue", devrevPATToken);
+		const [issueExists, issueData] = await getDevrevWorkItemFromDisplayID(issueDisplayID, "issue", devrevPATToken);
 		if (issueExists) {
-			let issueOwnerList = issueData.owned_by;
 			let issueOwnerStr = "";
-			for (let owner of issueOwnerList)
+			for (let owner of issueData.owned_by)
 				issueOwnerStr += owner.display_name + " ";
 			// Display an ephemeral Issue Summary
-			const embed = {
-				title: issueData.display_id,
-				color: 0x00ff00,
-				fields: [{
-					name: "Title",
-					value: issueData.title,
-				}, {
-					name: "Description",
-					value: issueData.body,
-				}, {
-					name: "Parts",
-					value: issueData.applies_to_part.display_id,
-				}, {
-					name: "Owner",
-					value: issueOwnerStr,
-				}, {
-					name: "Stage",
-					value: issueData.stage.name,
-				}, {
-					name: "Priority",
-					value: issueData.priority,
-				}, ],
-			};
-			let endpoint = `/webhooks/${application_id}/${token}`;
 			const ephemeralIssueReviewMessage = {
 				content: "DevRev Issue",
-				flags: 64,
-				embeds: [embed],
+				embeds: [{
+					title: issueData.display_id,
+					color: 0x00ff00,
+					fields: [{
+						name: "Title",
+						value: issueData.title,
+					}, {
+						name: "Description",
+						value: issueData.body,
+					}, {
+						name: "Parts",
+						value: issueData.applies_to_part.display_id,
+					}, {
+						name: "Owner",
+						value: issueOwnerStr,
+					}, {
+						name: "Stage",
+						value: issueData.stage.name,
+					}, {
+						name: "Priority",
+						value: issueData.priority,
+					},],
+				}],
 				components: [{
 					type: 1,
 					components: [{
@@ -260,28 +239,26 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 						label: "Checkout Issue?",
 						style: 5,
 						url: "https://app.dev.devrev-eng.ai/flow-test/works/" + issueData.display_id,
-					}, ],
-				}, ],
+					},],
+				},],
 			};
 			try {
-				const resp = await DiscordAPIRequest(endpoint, {
+				await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
 					method: "POST",
 					body: ephemeralIssueReviewMessage,
-				}, bearerAccess, discordOAuthToken);
+				}, BEARER_ACCESS, discordOAuthToken);
 			} catch (err) {
 				console.error(err);
 			}
 		} else {
 			// Display ephemeral message that such work item does not exist
-			let endpoint = `/webhooks/${application_id}/${token}`;
-			const ephemeralDoesNotExistMessage = {
-				content: `There is no DevRev issue with id ${issueDisplayID}`,
-			};
 			try {
-				const resp = await DiscordAPIRequest(endpoint, {
+				await DiscordAPIRequest(`/webhooks/${application_id}/${token}`, {
 					method: "POST",
-					body: ephemeralDoesNotExistMessage,
-				}, bearerAccess, discordOAuthToken);
+					body: {
+						content: `There is no DevRev issue with id ${issueDisplayID}`,
+					},
+				}, BEARER_ACCESS, discordOAuthToken);
 			} catch (err) {
 				console.error(err);
 			}
