@@ -36,7 +36,6 @@ export async function createDevrevTag(tagData, DEVREV_PAT) {
 
 export async function checkIfDevrevTagExists(tagName, DEVREV_PAT) {
 	let tagID, tagExists = false;
-	// First Iteration Fetch
 	let [tagsArray, nextCursor] = await getDevrevTagsList(undefined, DEVREV_PAT);
 	if (tagsArray) {
 		for (let tag of tagsArray as any[]) {
@@ -46,10 +45,8 @@ export async function checkIfDevrevTagExists(tagName, DEVREV_PAT) {
 			}
 		}
 	}
-
 	if (tagExists)
 		return [tagExists, tagID];
-	// Fetching all possible iterations
 	while (nextCursor != undefined && !tagExists) {
 		[tagsArray, nextCursor] = await getDevrevTagsList(nextCursor, DEVREV_PAT);
 		for (let tag of tagsArray) {
@@ -64,7 +61,6 @@ export async function checkIfDevrevTagExists(tagName, DEVREV_PAT) {
 
 export async function getDevrevWorkItemFromDisplayID(workDisplayID, workType, DEVREV_PAT) {
 	let workObject, workExists = false;
-	// First Iteration Fetch
 	let [worksArray, nextCursor] = await getDevrevWorksList(workType, undefined, DEVREV_PAT);
 	for (let work of worksArray) {
 		if (work.display_id == workDisplayID) {
@@ -72,7 +68,6 @@ export async function getDevrevWorkItemFromDisplayID(workDisplayID, workType, DE
 			break;
 		}
 	}
-	// Fetching all possible iterations
 	if (workExists)
 		return [workExists, workObject];
 	while (nextCursor != undefined && !workExists) {
