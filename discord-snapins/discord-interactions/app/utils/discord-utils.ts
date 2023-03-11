@@ -15,8 +15,8 @@ export async function DiscordAPIRequest(endpoint, options, DISCORD_AUTH) {
 	});
 	// throw API errors
 	if (!res.ok) {
-		const data = await res.json();
-		throw new Error(JSON.stringify(data));
+		const errorData = await res.json();
+		throw new Error(JSON.stringify(errorData));
 	}
 	// return original response
 	return await res.json();
@@ -58,7 +58,8 @@ export async function writeToDiscordThread(threadID, messageBody, BOT_ACCESS) {
 		console.error(err);
 	}
 }
-
+// By default, the first follow up message to Discord interaction will be ephemeral.
+// (flag : 64 is defined in Blubox discord apphook)
 export async function sendDiscordFollowUpMessage(messageBody, APPLICATION_ID, INTERACTION_TOKEN, BEARER_ACCESS) {
 	try {
 		await DiscordAPIRequest(`/webhooks/${APPLICATION_ID}/${INTERACTION_TOKEN}`, {

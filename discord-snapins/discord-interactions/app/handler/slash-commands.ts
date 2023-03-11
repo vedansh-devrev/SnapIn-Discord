@@ -11,7 +11,7 @@ import {
 	createDevrevWorkItem
 } from "../utils/devrev-utils"
 
-// DevRev Tag and Discord Thread for created work-item
+// DevRev Tag and discord discussion thread for created work-item
 const TAG_NAME = "discord-ticket";
 const THREAD_NAME = "[devrev-tickets]"
 
@@ -96,12 +96,13 @@ export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS,
 	// Slash Command to get DevRev ticket info
 	if (name == 'devrev-ticket') {
 		const ticketDisplayID = "TKT-" + options[0].value;
-		// Using TKT-abc ID to fetch the work item
+		// Using TKT-ID to fetch the work item
 		const [ticketExists, ticketData] = await getDevrevWorkItemFromDisplayID(ticketDisplayID, "ticket", DEVREV_PAT);
 		if (ticketExists) {
 			let ticketOwnerStr = "";
 			for (let owner of ticketData.owned_by)
 				ticketOwnerStr += owner.display_name + " ";
+			// Sending Ticket Summary in follow up response to Discord interaction
 			await sendDiscordFollowUpMessage({
 				content: "DevRev Ticket",
 				embeds: [{
@@ -138,6 +139,7 @@ export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS,
 				},],
 			}, application_id, token, BEARER_ACCESS);
 		} else {
+			// Informing ticket not found in follow up response to Discord interaction 
 			await sendDiscordFollowUpMessage({
 				content: `There is no DevRev ticket ${ticketDisplayID}`,
 			}, application_id, token, BEARER_ACCESS);
@@ -146,12 +148,13 @@ export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS,
 	// Slash Command to get DevRev Issue info
 	if (name == 'devrev-issue') {
 		const issueDisplayID = "ISS-" + options[0].value;
-		// Using TKT-abc ID to fetch the work item
+		// Using TKT-ID to fetch the work item
 		const [issueExists, issueData] = await getDevrevWorkItemFromDisplayID(issueDisplayID, "issue", DEVREV_PAT);
 		if (issueExists) {
 			let issueOwnerStr = "";
 			for (let owner of issueData.owned_by)
 				issueOwnerStr += owner.display_name + " ";
+			// Sending Issue Summary in follow up response to Discord interaction
 			await sendDiscordFollowUpMessage({
 				content: "DevRev Issue",
 				embeds: [{
@@ -188,6 +191,7 @@ export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS,
 				},],
 			}, application_id, token, BEARER_ACCESS);
 		} else {
+			// Informing issue not found in follow up response to Discord interaction 
 			await sendDiscordFollowUpMessage({
 				content: `There is no DevRev issue with id ${issueDisplayID}`,
 			}, application_id, token, BEARER_ACCESS);

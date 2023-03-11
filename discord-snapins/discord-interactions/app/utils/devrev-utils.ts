@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 export async function DevrevAPIRequest(endpoint, options, DEVREV_PAT) {
-	// Append endpoint to root DevRev API URL
+	// Append endpoint to root DevRev API URL (DEV)
 	const url = 'https://api.dev.devrev-eng.ai/' + endpoint;
 	// Stringify payloads
 	if (options.body) options.body = JSON.stringify(options.body);

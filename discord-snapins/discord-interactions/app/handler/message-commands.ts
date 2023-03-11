@@ -11,7 +11,7 @@ import {
 	createDevrevWorkItem,
 } from "../utils/devrev-utils"
 
-// DevRev Tag and Discord Thread for created work-item
+// DevRev Tag and Discord discussion thread for created work-item
 const TAG_NAME = "discord-ticket";
 const THREAD_NAME = "[devrev-tickets]"
 
@@ -58,25 +58,23 @@ export async function HandleMessageCommandInteractions(event, name, BEARER_ACCES
 			type: `ticket`,
 		}, DEVREV_PAT);
 		// Retrieve the Message Object to check if it has an existing thread
-		let threadExists, threadID;
 		const messageObject = await getDiscordMessageObject(channel_id, target_id, BOT_ACCESS);
-		
-		if (messageObject.thread == null) threadExists = false;
-		else [threadExists, threadID] = [true, messageObject.thread.id];
-		// Discord currently allows 1 thread per post, so we must write new ticket creation notifications on the existing thread, if any.
 		if (messageObject.thread) {
+			// Discord currently allows 1 thread per post, so we must write new ticket creation notifications on the existing thread, if any.
 			await writeToDiscordThread(messageObject.thread.id, {
 				content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
 			}, BOT_ACCESS);
 		} else {
+			// Create Discord discussion thread for new ticket
 			const thread = await createDiscordThreadOnMessage({
 				name: THREAD_NAME,
 			}, channel_id, target_id, BOT_ACCESS);
+			// Create a thread message for notifying ticket creation
 			await writeToDiscordThread(thread.id, {
 				content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
 			}, BOT_ACCESS);
 		}
-		// Embedding for displaying the created ticket in the Ephemeral Message (Ephemeral Follow Up Message)
+		// Sending follow up response from the Lambda function to Discord interaction
 		await sendDiscordFollowUpMessage({
 			content: "DevRev Ticket",
 			embeds: [{
