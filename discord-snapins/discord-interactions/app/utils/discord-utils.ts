@@ -58,18 +58,6 @@ export async function writeToDiscordThread(threadID, messageBody, BOT_ACCESS) {
 		console.error(err);
 	}
 }
-// By default, the first follow up message to Discord interaction will be ephemeral.
-// (flag : 64 is defined in Blubox discord apphook)
-export async function sendDiscordFollowUpMessage(messageBody, APPLICATION_ID, INTERACTION_TOKEN, BEARER_ACCESS) {
-	try {
-		await DiscordAPIRequest(`/webhooks/${APPLICATION_ID}/${INTERACTION_TOKEN}`, {
-			method: "POST",
-			body: messageBody,
-		}, BEARER_ACCESS);
-	} catch (err) {
-		console.error(err);
-	}
-}
 
 export async function getDiscordMessageObject(channelID, messageID, BOT_ACCESS) {
 	let messageObject;
@@ -81,4 +69,17 @@ export async function getDiscordMessageObject(channelID, messageID, BOT_ACCESS) 
 		console.error(err);
 	}
 	return messageObject;
+}
+
+// By default, the first follow up message to Discord interaction will be ephemeral.
+// (flag : 64 is defined in Blubox discord apphook)
+export async function sendDiscordFollowUpMessage(messageBody, APPLICATION_ID, INTERACTION_TOKEN, BEARER_ACCESS) {
+	try {
+		await DiscordAPIRequest(`/webhooks/${APPLICATION_ID}/${INTERACTION_TOKEN}`, {
+			method: "POST",
+			body: messageBody,
+		}, BEARER_ACCESS);
+	} catch (err) {
+		console.error(err);
+	}
 }
