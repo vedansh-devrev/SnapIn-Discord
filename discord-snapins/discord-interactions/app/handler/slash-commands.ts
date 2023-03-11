@@ -193,7 +193,7 @@ export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS,
 		} else {
 			// Informing issue not found in follow up response to Discord interaction 
 			await sendDiscordFollowUpMessage({
-				content: `There is no DevRev issue with id ${issueDisplayID}`,
+				content: `There is no DevRev issue ${issueDisplayID}`,
 			}, application_id, token, BEARER_ACCESS);
 		}
 	}

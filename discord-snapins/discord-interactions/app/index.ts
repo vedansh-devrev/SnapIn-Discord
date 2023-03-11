@@ -32,11 +32,14 @@ export class App implements AutomationInterface {
 	async EventListener(event: AutomationEvent) {
 		// For details on interaction payload from Discord
 		// Refer to https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+		console.log("Incoming Payload : ", JSON.stringify(event));
 		const {
-			type,
-			data,
+			payload:{
+				type,
+				data,
+			},		
 			input_data : { keyrings },
-		} = event.payload;
+		} = event;
 		// Authorization for Discord
 		const BEARER_ACCESS = `Bearer ${keyrings["discord"]}`;
 		const BOT_ACCESS = `Bot ${keyrings["discord-bot-token"]}`;
