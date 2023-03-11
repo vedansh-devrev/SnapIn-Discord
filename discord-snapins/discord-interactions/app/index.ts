@@ -35,11 +35,13 @@ export class App implements AutomationInterface {
 		const {
 			type,
 			data,
+			input_data : { keyrings },
 		} = event.payload;
-		// Extracting Tokens from Keyrings
-		const discordOAuthToken = event.input_data.keyrings["discord"];
-		const discordBotToken = event.input_data.keyrings["discord-bot-token"];
-		const devrevPATToken = event.input_data.keyrings["devrev"];
+		// Authorization for Discord
+		const BEARER_ACCESS = `Bearer ${keyrings["discord"]}`;
+		const BOT_ACCESS = `Bot ${keyrings["discord-bot-token"]}`;
+		// Authorization for DevRev
+		const DEVREV_PAT = keyrings["devrev"];
 		// Handling Application Command Interactions
 		if (type == 2) {
 			const {
@@ -47,11 +49,11 @@ export class App implements AutomationInterface {
 			} = data;
 			// Handling Message Commands
 			if (MessageCommands.includes(name)) {
-				await HandleMessageCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
+				await HandleMessageCommandInteractions(event, name, BEARER_ACCESS, BOT_ACCESS, DEVREV_PAT);
 			}
 			// Handling Slash Commands
 			if (SlashCommands.includes(name)) {
-				await HandleSlashCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken);
+				await HandleSlashCommandInteractions(event, name, BEARER_ACCESS, BOT_ACCESS, DEVREV_PAT);
 			}
 		}
 	}

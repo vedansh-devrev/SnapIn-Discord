@@ -11,14 +11,11 @@ import {
 	createDevrevWorkItem
 } from "../utils/devrev-utils"
 
-// Defining Access Type
-const BEARER_ACCESS = "Bearer";
-const BOT_ACCESS = "Bot";
 // DevRev Tag and Discord Thread for created work-item
 const TAG_NAME = "discord-ticket";
 const THREAD_NAME = "[devrev-tickets]"
 
-export async function HandleSlashCommandInteractions(event, name, discordOAuthToken, discordBotToken, devrevPATToken) {
+export async function HandleSlashCommandInteractions(event, name, BEARER_ACCESS, BOT_ACCESS, DEVREV_PAT) {
 	const {
 		payload: {
 			data: { options },
@@ -34,9 +31,9 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 	// Slash Command for ticket creation
 	if (name === 'create-ticket') {
 		// Fetch Tag DON ID for TAG_NAME
-		let [tagExists, tagDON] = await checkIfDevrevTagExists(TAG_NAME, devrevPATToken);
+		let [tagExists, tagDON] = await checkIfDevrevTagExists(TAG_NAME, DEVREV_PAT);
 		if (!tagExists)
-			tagDON = await createDevrevTag(TAG_NAME, devrevPATToken);
+			tagDON = await createDevrevTag(TAG_NAME, DEVREV_PAT);
 		// Create DevRev Ticket and Get Work Object
 		const workItemCreated = await createDevrevWorkItem({
 			applies_to_part: part_id,
@@ -50,17 +47,17 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 			title: options[0].value,
 			body: options[1].value,
 			type: `ticket`,
-		}, devrevPATToken);
+		}, DEVREV_PAT);
 		// Create Discord discussion thread for new ticket
 		const thread = await createPublicDiscordThreadWithoutMessage( {
 			name: THREAD_NAME,
 			// type : 11 specifies a Public Thread	
 			type: 11,
-		}, channel_id, BOT_ACCESS, discordBotToken);
+		}, channel_id, BOT_ACCESS);
 		// Create a thread message for notifying ticket creation
 		await writeToDiscordThread(thread.id, {
 			content: `A ticket ${workItemCreated.work.display_id} has been created by <@${member.user.id}>!`,
-		}, BOT_ACCESS, discordBotToken);
+		}, BOT_ACCESS);
 		// Sending follow up response from the Lambda function to Discord interaction
 		await sendDiscordFollowUpMessage({
 			content: "DevRev Ticket",
@@ -94,13 +91,13 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 					url: "https://app.dev.devrev-eng.ai/flow-test/works/" + workItemCreated.work.display_id,
 				},],
 			},],
-		}, application_id, token, BEARER_ACCESS, discordOAuthToken);
+		}, application_id, token, BEARER_ACCESS);
 	}
 	// Slash Command to get DevRev ticket info
 	if (name == 'devrev-ticket') {
 		const ticketDisplayID = "TKT-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
-		const [ticketExists, ticketData] = await getDevrevWorkItemFromDisplayID(ticketDisplayID, "ticket", devrevPATToken);
+		const [ticketExists, ticketData] = await getDevrevWorkItemFromDisplayID(ticketDisplayID, "ticket", DEVREV_PAT);
 		if (ticketExists) {
 			let ticketOwnerStr = "";
 			for (let owner of ticketData.owned_by)
@@ -139,18 +136,18 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 						url: "https://app.dev.devrev-eng.ai/flow-test/works/" + ticketData.display_id,
 					},],
 				},],
-			}, application_id, token, BEARER_ACCESS, discordOAuthToken);
+			}, application_id, token, BEARER_ACCESS);
 		} else {
 			await sendDiscordFollowUpMessage({
 				content: `There is no DevRev ticket ${ticketDisplayID}`,
-			}, application_id, token, BEARER_ACCESS, discordOAuthToken);
+			}, application_id, token, BEARER_ACCESS);
 		}
 	}
 	// Slash Command to get DevRev Issue info
 	if (name == 'devrev-issue') {
 		const issueDisplayID = "ISS-" + options[0].value;
 		// Using TKT-abc ID to fetch the work item
-		const [issueExists, issueData] = await getDevrevWorkItemFromDisplayID(issueDisplayID, "issue", devrevPATToken);
+		const [issueExists, issueData] = await getDevrevWorkItemFromDisplayID(issueDisplayID, "issue", DEVREV_PAT);
 		if (issueExists) {
 			let issueOwnerStr = "";
 			for (let owner of issueData.owned_by)
@@ -189,11 +186,11 @@ export async function HandleSlashCommandInteractions(event, name, discordOAuthTo
 						url: "https://app.dev.devrev-eng.ai/flow-test/works/" + issueData.display_id,
 					},],
 				},],
-			}, application_id, token, BEARER_ACCESS, discordOAuthToken);
+			}, application_id, token, BEARER_ACCESS);
 		} else {
 			await sendDiscordFollowUpMessage({
 				content: `There is no DevRev issue with id ${issueDisplayID}`,
-			}, application_id, token, BEARER_ACCESS, discordOAuthToken);
+			}, application_id, token, BEARER_ACCESS);
 		}
 	}
 }

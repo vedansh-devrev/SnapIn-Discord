@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 
-export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_TOKEN) {
+export async function DiscordAPIRequest(endpoint, options, DISCORD_AUTH) {
 	// Append endpoint to root API URL
 	const url = 'https://discord.com/api/' + endpoint;
 	// Stringify payloads
@@ -8,7 +8,7 @@ export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_T
 	// Use node-fetch to make requests
 	const res = await fetch(url, {
 		headers: {
-			Authorization: `${TOKEN_TYPE} ${DISCORD_TOKEN}`,
+			Authorization: DISCORD_AUTH,
 			'Content-Type': 'application/json; charset=UTF-8',
 		},
 		...options
@@ -22,60 +22,60 @@ export async function DiscordAPIRequest(endpoint, options, TOKEN_TYPE, DISCORD_T
 	return await res.json();
 }
 
-export async function createDiscordThreadOnMessage(threadData, channelID, messageID, BOT_ACCESS, DISCORD_BOT_TOKEN) {
+export async function createDiscordThreadOnMessage(threadData, channelID, messageID, BOT_ACCESS) {
 	let threadObject;
 	try {
 		threadObject = await DiscordAPIRequest(`channels/${channelID}/messages/${messageID}/threads`, {
 			method: "POST",
 			body: threadData,
-		}, BOT_ACCESS, DISCORD_BOT_TOKEN);
+		}, BOT_ACCESS);
 	} catch (err) {
 		console.error(err);
 	}
 	return threadObject;
 }
 
-export async function createPublicDiscordThreadWithoutMessage(threadData, channelID, BOT_ACCESS, DISCORD_BOT_TOKEN) {
+export async function createPublicDiscordThreadWithoutMessage(threadData, channelID, BOT_ACCESS) {
 	let threadObject;
 	try {
 		threadObject = await DiscordAPIRequest(`/channels/${channelID}/threads`, {
 			method: "POST",
 			body: threadData,
-		}, BOT_ACCESS, DISCORD_BOT_TOKEN);
+		}, BOT_ACCESS);
 	} catch (err) {
 		console.error(err);
 	}
 	return threadObject;
 }
 
-export async function writeToDiscordThread(threadID, messageBody, BOT_ACCESS, DISCORD_BOT_TOKEN) {
+export async function writeToDiscordThread(threadID, messageBody, BOT_ACCESS) {
 	try {
 		await DiscordAPIRequest(`channels/${threadID}/messages`, {
 			method: "POST",
 			body: messageBody,
-		}, BOT_ACCESS, DISCORD_BOT_TOKEN);
+		}, BOT_ACCESS);
 	} catch (err) {
 		console.error(err);
 	}
 }
 
-export async function sendDiscordFollowUpMessage(messageBody, APPLICATION_ID, INTERACTION_TOKEN, BEARER_ACCESS, DISCORD_OAUTH_TOKEN) {
+export async function sendDiscordFollowUpMessage(messageBody, APPLICATION_ID, INTERACTION_TOKEN, BEARER_ACCESS) {
 	try {
 		await DiscordAPIRequest(`/webhooks/${APPLICATION_ID}/${INTERACTION_TOKEN}`, {
 			method: "POST",
 			body: messageBody,
-		}, BEARER_ACCESS, DISCORD_OAUTH_TOKEN);
+		}, BEARER_ACCESS);
 	} catch (err) {
 		console.error(err);
 	}
 }
 
-export async function getDiscordMessageObject(channelID, messageID, BOT_ACCESS, DISCORD_BOT_TOKEN) {
+export async function getDiscordMessageObject(channelID, messageID, BOT_ACCESS) {
 	let messageObject;
 	try {
 		messageObject = await DiscordAPIRequest(`channels/${channelID}/messages/${messageID}`, {
 			method: "GET",
-		}, BOT_ACCESS, DISCORD_BOT_TOKEN);
+		}, BOT_ACCESS);
 	} catch (err) {
 		console.error(err);
 	}
