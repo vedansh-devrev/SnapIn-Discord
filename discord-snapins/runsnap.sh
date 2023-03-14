@@ -18,8 +18,9 @@ echo "-----------------------------"
 # Devrev CLI Authentication
 # Declare the DevRev ID variable and set its value to the user email
 devrev_id="i-vedansh.srivastava@devrev.ai"
+dev_org="flow-test"
 echo "Initiating DevRev CLI Authentication for DevRev ID: ${devrev_id}"
-devrev profiles authenticate --env dev --org flow-test --usr ${devrev_id}
+devrev profiles authenticate --env dev --org ${dev_org} --usr ${devrev_id}
 if [ $? -eq 0 ]; then
   echo "Authentication Success!"
 else
@@ -107,26 +108,22 @@ else
   echo "Snap In updation failed: $debug_message"
   exit 1
 fi
-
 echo "-----------------------------"
-echo " "
-echo " DEPLOYMENT TIME "
-echo " "
-echo "I know its supposed to be script but can you please :)"
-echo " "
-read -p "Enter the snap_in id : " snap_in_id
-echo " "
-echo " "
-echo "Attempting yeet on your Snap In"
-
 #Snap In Deploy
-devrev snap_in deploy $snap_in_id
+read -p "Do you want to deploy the Snap In? (y/n) " answer
 
-if [ $? -eq 0 ]; then
+if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
+  echo "Performing action..."
+  devrev snap_in deploy $snap_in_draft_id
+  if [ $? -eq 0 ]; then
   echo "Snap-in you made was successfully yeeeted on Lambda"
+  else
+    echo "Snap-in deployment failed"
+    exit 1
+  fi
 else
-  echo "Snap-in deployment failed"
-  exit 1
+  echo "Action cancelled."
+  echo "Snap In ID: $snap_in_draft_id"
 fi
 
 echo "-----------------------------"
@@ -134,22 +131,17 @@ echo "-----------------------------"
 #Snap In Remove
 
 read -p "Do you want to remove the Snap Ins? (y/n) " answer
-
 if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
   echo "Performing action..."
   echo " "
+  echo "Deleting Snap In..."
+  devrev snap_in delete-one $snap_in_draft_id
   echo " "
-  echo "Snap In Deleted..."
-  devrev snap_in delete-one $snap_in_id
-  echo " "
-  echo " "
-  echo "Package Deleted..."
+  echo "Deleting Package..."
   devrev snap_in_package delete-one $snap_in_package_id
-
-  # do something here
+  echo " "
+  echo "Completed"
 else
   echo "Action cancelled. Phew!"
 fi
-
 echo "-----------------------------"
-
